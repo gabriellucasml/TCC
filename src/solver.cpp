@@ -28,6 +28,7 @@ Iter select_randomly(Iter start, Iter end) {
 }
 
 void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, double mutationRate, int maxIter) {
+    field->evaluations = 0;
     cout << "Optimizing solution..." << endl;
     random_device rd;// only used once to initialise (seed) engine
     mt19937 rng(rd());// random-number engine used (Mersenne-Twister in this case)
@@ -55,7 +56,7 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
         file << "Total optimal gas injection: " << Gmax << " MSCF/D" << endl;
         file << "Total optimal oil output: " << Omax << " B/D" << endl;
         file.close();
-    /*If that is not the case, begin optimizing*/
+        /*If that is not the case, begin optimizing*/
     }else{
         vector<double> currentBest;
         double currentFitness = 0;
@@ -80,6 +81,8 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
         ofstream points;
         points.open("genetic_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
+            if(field->evaluations > 1000000)
+                break;
             //look for fitest
             int fitestIndex = 0;
             double fitest = 0;
@@ -119,10 +122,10 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
                         }
                     }
                     for(int i = 0; i<field->getNumWells(); i++){//O(n)
-                        p1Fitness += field->getWells()[i].GLPC(p1[i]);
-                        p2Fitness += field->getWells()[i].GLPC(p2[i]);
-                        child1Fitness += field->getWells()[i].GLPC(child1[i]);
-                        child2Fitness += field->getWells()[i].GLPC(child2[i]);
+                        p1Fitness += field->getWells()[i].GLPC(p1[i]); field->evaluations++;
+                        p2Fitness += field->getWells()[i].GLPC(p2[i]); field->evaluations++;
+                        child1Fitness += field->getWells()[i].GLPC(child1[i]); field->evaluations++;
+                        child2Fitness += field->getWells()[i].GLPC(child2[i]); field->evaluations++;
                     }
                     double P[] = {p1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), p2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness)};
                     double accumulatedP = 0;
@@ -166,7 +169,7 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
                 geneFitness = 0;
                 for(int j = 0; j < field->getNumWells(); j++){//O(n)
                     injectedGas += population[i][j];
-                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0);
+                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0); field->evaluations++;
                 }
                 if(injectedGas > field->getGasTotal()){
                     fitness[i] = 0;
@@ -195,7 +198,7 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
         }
         file<<endl;
         for(int i = 0; i < field->getNumWells(); i++){//O(n)
-            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " ";
+            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " "; field->evaluations++;
         }
         file << endl << endl;
         file << "Total gas available: " << field->getGasTotal() << endl;
@@ -209,6 +212,7 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
 }
 
 void Solver::MultiStart(Field* field, int max_iteration, double minProdRate){
+    field->evaluations = 0;
     double Gmax = 0;
     double Omax = 0;
     vector<double> bestSol(field->getNumWells(),0);
@@ -288,13 +292,13 @@ void Solver::MultiStart(Field* field, int max_iteration, double minProdRate){
         int i = 0;
         for(auto n : bestSol){
             currBestGas += n;
-            currBestOil += (field->getWells()[i].GLPC(n)>0 ? field->getWells()[i].GLPC(n) : 0);
+            currBestOil += (field->getWells()[i].GLPC(n)>0 ? field->getWells()[i].GLPC(n) : 0); field->evaluations++;
             i++;
         }//n
         field->setSolution(bestSol);
         file << endl;
         for(int j = 0; j < field->getNumWells(); j++){
-            file << (field->getWells()[j].GLPC(bestSol[j]) > 0 ? field->getWells()[j].GLPC(bestSol[j]) : 0) << " ";
+            file << (field->getWells()[j].GLPC(bestSol[j]) > 0 ? field->getWells()[j].GLPC(bestSol[j]) : 0) << " "; field->evaluations++;
         }
         file << endl << endl;
         file << "Total gas available: " << field->getGasTotal() << endl;
@@ -307,6 +311,7 @@ void Solver::MultiStart(Field* field, int max_iteration, double minProdRate){
 }
 
 void Solver::SimulatedAnnealing(Field* field, double initialTemp, double finalTemp, int iterations, int numNeighbors){
+    field->evaluations = 0;
     random_device rd;
     mt19937 rng(rd());
     uniform_real_distribution<> real(0,1);
@@ -409,14 +414,14 @@ void Solver::SimulatedAnnealing(Field* field, double initialTemp, double finalTe
         file << endl;
         int i = 0;
         for(double d : bestSol){
-            file << (field->getWells()[i].GLPC(d) > 0 ? field->getWells()[i].GLPC(d) : 0) << ", ";
+            file << (field->getWells()[i].GLPC(d) > 0 ? field->getWells()[i].GLPC(d) : 0) << ", "; field->evaluations++;
             i++;
         }
         i = 0;
         double solucaoOleo = evalSolution(field, bestSol);
         double noGasOilProd = 0;
         for(Well well : field->getWells()){
-            noGasOilProd += (well.GLPC(0) > 0 ? well.GLPC(0): 0);
+            noGasOilProd += (well.GLPC(0) > 0 ? well.GLPC(0): 0); field->evaluations++;
             i++;
         }
         file << endl;
@@ -436,6 +441,7 @@ void Solver::SimulatedAnnealing(Field* field, double initialTemp, double finalTe
 }
 
 void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mutationRate, int maxIter, int LS_neighborhoodSize){
+    field->evaluations = 0;
     random_device rd;// only used once to initialise (seed) engine
     mt19937 rng(rd());// random-number engine used (Mersenne-Twister in this case)
     uniform_int_distribution<int> allele(0, field->getNumWells());//guaranteed unbiased
@@ -524,10 +530,10 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
                         }
                     }
                     for(int i = 0; i<field->getNumWells(); i++){//O(n)
-                        p1Fitness += field->getWells()[i].GLPC(p1[i]);
-                        p2Fitness += field->getWells()[i].GLPC(p2[i]);
-                        child1Fitness += field->getWells()[i].GLPC(child1[i]);
-                        child2Fitness += field->getWells()[i].GLPC(child2[i]);
+                        p1Fitness += field->getWells()[i].GLPC(p1[i]); field->evaluations++;
+                        p2Fitness += field->getWells()[i].GLPC(p2[i]); field->evaluations++;
+                        child1Fitness += field->getWells()[i].GLPC(child1[i]); field->evaluations++;
+                        child2Fitness += field->getWells()[i].GLPC(child2[i]); field->evaluations++;
                     }
                     double P[] = {p1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), p2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness)};
                     double accumulatedP = 0;
@@ -571,7 +577,7 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
                 geneFitness = 0;
                 for(int j = 0; j < field->getNumWells(); j++){//O(n)
                     injectedGas += population[i][j];
-                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0);
+                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0); field->evaluations++;
                 }
                 //cout << "generation " << iteration << " gene "<< i << " gas:" << injectedGas << endl;
                 if(injectedGas > field->getGasTotal()){
@@ -602,7 +608,7 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
         }
         file<<endl;
         for(int i = 0; i < field->getNumWells(); i++){//O(n)
-            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " ";
+            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " "; field->evaluations++;
         }
         file << endl << endl;
         file << "Total gas available: " << field->getGasTotal() << endl;
@@ -616,6 +622,7 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
 }
 
 void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mutationRate, int maxIter, double minProdRate){
+    field->evaluations = 0;
     cout << "Optimizing solution..." << endl;
     random_device rd;// only used once to initialise (seed) engine
     mt19937 rng(rd());// random-number engine used (Mersenne-Twister in this case)
@@ -718,10 +725,10 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
                         }
                     }
                     for(int i = 0; i<field->getNumWells(); i++){//O(n)
-                        p1Fitness += field->getWells()[i].GLPC(p1[i]);
-                        p2Fitness += field->getWells()[i].GLPC(p2[i]);
-                        child1Fitness += field->getWells()[i].GLPC(child1[i]);
-                        child2Fitness += field->getWells()[i].GLPC(child2[i]);
+                        p1Fitness += field->getWells()[i].GLPC(p1[i]); field->evaluations++;
+                        p2Fitness += field->getWells()[i].GLPC(p2[i]); field->evaluations++;
+                        child1Fitness += field->getWells()[i].GLPC(child1[i]); field->evaluations++;
+                        child2Fitness += field->getWells()[i].GLPC(child2[i]); field->evaluations++;
                     }
                     double P[] = {p1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), p2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness)};
                     double accumulatedP = 0;
@@ -765,7 +772,7 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
                 geneFitness = 0;
                 for(int j = 0; j < field->getNumWells(); j++){//O(n)
                     injectedGas += population[i][j];
-                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0);
+                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0); field->evaluations++;
                 }
                 if(injectedGas > field->getGasTotal()){
                     fitness[i] = 0;
@@ -794,7 +801,7 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
         }
         file<<endl;
         for(int i = 0; i < field->getNumWells(); i++){//O(n)
-            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " ";
+            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " "; field->evaluations++;
         }
         file << endl << endl;
         file << "Total gas available: " << field->getGasTotal() << endl;
@@ -808,6 +815,7 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
 }
 
 void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mutationRate, int maxIter, double initialTemp, double finalTemp, int numNeighbors){
+    field->evaluations = 0;
     cout << "Optimizing solution..." << endl;
     random_device rd;// only used once to initialise (seed) engine
     mt19937 rng(rd());// random-number engine used (Mersenne-Twister in this case)
@@ -899,10 +907,10 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
                         }
                     }
                     for(int i = 0; i<field->getNumWells(); i++){//O(n)
-                        p1Fitness += field->getWells()[i].GLPC(p1[i]);
-                        p2Fitness += field->getWells()[i].GLPC(p2[i]);
-                        child1Fitness += field->getWells()[i].GLPC(child1[i]);
-                        child2Fitness += field->getWells()[i].GLPC(child2[i]);
+                        p1Fitness += field->getWells()[i].GLPC(p1[i]); field->evaluations++;
+                        p2Fitness += field->getWells()[i].GLPC(p2[i]); field->evaluations++;
+                        child1Fitness += field->getWells()[i].GLPC(child1[i]); field->evaluations++;
+                        child2Fitness += field->getWells()[i].GLPC(child2[i]); field->evaluations++;
                     }
                     double P[] = {p1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), p2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness)};
                     double accumulatedP = 0;
@@ -946,7 +954,7 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
                 geneFitness = 0;
                 for(int j = 0; j < field->getNumWells(); j++){//O(n)
                     injectedGas += population[i][j];
-                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0);
+                    geneFitness += (field->getWells()[j].GLPC(population[i][j]) >= 0 ? field->getWells()[j].GLPC(population[i][j]) : 0); field->evaluations++;
                 }
                 if(injectedGas > field->getGasTotal()){
                     fitness[i] = 0;
@@ -975,7 +983,7 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
         }
         file<<endl;
         for(int i = 0; i < field->getNumWells(); i++){//O(n)
-            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " ";
+            file << (field->getWells()[i].GLPC(currentBest[i])>=0 ? field->getWells()[i].GLPC(currentBest[i]):0) << " "; field->evaluations++;
         }
         file << endl << endl;
         file << "Total gas available: " << field->getGasTotal() << endl;
@@ -1012,7 +1020,7 @@ vector<double> Solver::generateRandomSolution(Field* field){
 double Solver::evalSolution(Field* field, const vector<double>& sol){
     double custo = 0;
     for(int i = 0; i < field->getNumWells(); i++){
-        custo += (field->getWells()[i].GLPC(sol[i]) > 0 ? field->getWells()[i].GLPC(sol[i]) : 0);
+        custo += (field->getWells()[i].GLPC(sol[i]) > 0 ? field->getWells()[i].GLPC(sol[i]) : 0); field->evaluations++;
     }
     return custo;
 }
@@ -1131,5 +1139,4 @@ std::vector<double> Solver::SA_LS(Field *field, vector<double> initialSol, doubl
     }
     return bestSol;
 }
-
 
