@@ -12,6 +12,7 @@ private:
     std::vector<double> solution;
     std::string filePath;
 public:
+    int evaluations;
     Field();
     explicit Field(std::string _filePath);
     std::string getFilePath();

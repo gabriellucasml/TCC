@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include <list>
+#include <utility>
 #include <vector>
 #include <random>
 #include <iterator>
@@ -12,12 +13,10 @@
 
 using namespace std;
 
-Field::Field(){
-
-}
+Field::Field()= default;
 
 Field::Field(string _filePath){
-    filePath = _filePath;
+    filePath = std::move(_filePath);
     cout << "Setting wells..." << endl << "\t Reading files..." << endl;
     setNumWells();
     for(int i = 0; i<numWells; i++){
