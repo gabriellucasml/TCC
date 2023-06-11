@@ -43,9 +43,10 @@ int main(){
 #include "include/well.h"
 
 using namespace std;
+using namespace std::chrono;
 
 int main(){
-    time_t start, end;
+    int repetitions = 24;
     Field field6("../data/well-6.txt");
     Field field10("../data/well-10.txt");
     Field field15("../data/well-15.txt");
@@ -54,6 +55,7 @@ int main(){
     Field field40("../data/well-40.txt");
     Field field50("../data/well-50.txt");
     Field field56("../data/well-56.txt");
+
     field6.setGasTotal(3000);
     field10.setGasTotal(4000);
     field15.setGasTotal(5000);
@@ -62,35 +64,160 @@ int main(){
     field40.setGasTotal(8000);
     field50.setGasTotal(9000);
     field56.setGasTotal(10000);
-    double oilSoultion[24];
-    double gasSolution[24];
-    double times[24];
-    double oilMean = 0, gasMean = 0;
-    double oilVar = 0, gasVar = 0;;
-    for(int i = 0; i < 24; i++){
-        time(&start);
-        field6.setSolution(500, 0.6, 0.1, 50);
-        time(&end);
-        oilSoultion[i] = field6.getOptimalOil();
-        gasSolution[i] = field6.getOptimalGas();
-        oilMean += field6.getOptimalOil();
-        gasMean += field6.getOptimalGas();
+
+    fstream file;
+    file.open("log.txt", fstream::in | fstream::out | fstream::app);
+    double solutionGas[repetitions], solutionOil[repetitions], solutionTime[repetitions];
+
+    file << endl << endl << "Field 15" << endl;
+    cout << "Genetic." << endl;
+    for(int i = 0; i < repetitions; i++) {
+        cout << i << endl;
+        auto start = high_resolution_clock::now();
+        field15.setSolution(500, 0.6, 0.1, 50);
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        solutionTime[i] = double(duration.count())/1000000;
+        solutionOil[i] = field15.getOptimalOil();
+        solutionGas[i] = field15.getOptimalGas();
     }
-    oilMean = oilMean/24;
-    gasMean = gasMean/24;
-    for(int i = 0; i < 24; i++){
-        oilVar+=pow((oilSoultion[i]-oilMean),2);
-        gasVar+=pow((gasSolution[i]-gasMean),2);
+    file << "Genetic:" << endl;
+    file << "Oil: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionOil[i] << ", ";
+    file << endl;
+    file << "Gas: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionGas[i] << ", ";
+    file << endl;
+    file << "Time: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionTime[i] << ", ";
+    file << endl << endl;
+
+    cout << "Multi-start:" << endl;
+    for(int i = 0; i < repetitions; i++) {
+        cout << i << endl;
+        auto start = high_resolution_clock::now();
+        field15.setSolution(50, 0.1);
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        solutionTime[i] = double(duration.count())/1000000;
+        solutionOil[i] = field15.getOptimalOil();
+        solutionGas[i] = field15.getOptimalGas();
     }
-    oilVar = oilVar/24;
-    gasVar = gasVar/24;
-    auto time_taken = double(end-start);
-    cout<<"24 exectutions for the genetic algorith:"<<endl;
-    cout<<"oil Mean: "<< oilMean<< endl;
-    cout<<"oil variance: "<< oilVar << endl;
-    cout<<"oil sd: "<< sqrt(oilVar)<<endl;
-    cout<<"gas Mean: "<< gasMean << endl;
-    cout<<"gas varianve" << gasVar << endl;
-    cout<<"gas sd: " << sqrt(gasVar) << endl;
-    cout<<"time taken to execute 24 times: " << time_taken << setprecision(5) << "s" << endl;
+    file << "Multi-start:" << endl;
+    file << "Oil: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionOil[i] << ", ";
+    file << endl;
+    file << "Gas: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionGas[i] << ", ";
+    file << endl;
+    file << "Time: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionTime[i] << ", ";
+    file << endl << endl;
+
+    cout << "Simulated Annealing" << endl;
+    for(int i = 0; i < repetitions; i++) {
+        cout << i << endl;
+        auto start = high_resolution_clock::now();
+        field15.setSolution(1000.0, 10.0, 50, 60);
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        solutionTime[i] = double(duration.count())/1000000;
+        solutionOil[i] = field15.getOptimalOil();
+        solutionGas[i] = field15.getOptimalGas();
+    }
+    file << "Simulated Annealing:" << endl;
+    file << "Oil: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionOil[i] << ", ";
+    file << endl;
+    file << "Gas: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionGas[i] << ", ";
+    file << endl;
+    file << "Time: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionTime[i] << ", ";
+    file << endl << endl;
+
+    cout << "Memetic 1:" << endl;
+    for(int i = 0; i < repetitions; i++) {
+        cout << i << endl;
+        auto start = high_resolution_clock::now();
+        field15.setSolution(400, 0.8, 0.4, 50, 10);
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        solutionTime[i] = double(duration.count())/1000000;
+        solutionOil[i] = field15.getOptimalOil();
+        solutionGas[i] = field15.getOptimalGas();
+    }
+    file << "Memetic 1:" << endl;
+    file << "Oil: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionOil[i] << ", ";
+    file << endl;
+    file << "Gas: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionGas[i] << ", ";
+    file << endl;
+    file << "Time: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionTime[i] << ", ";
+    file << endl << endl;
+
+    cout << "Memetic 2" << endl;
+    for(int i = 0; i < repetitions; i++) {
+        cout << i << endl;
+        auto start = high_resolution_clock::now();
+        field15.setSolution(400, 0.8, 0.4, 50, 0.1);
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        solutionTime[i] = double(duration.count())/1000000;
+        solutionOil[i] = field15.getOptimalOil();
+        solutionGas[i] = field15.getOptimalGas();
+    }
+    file << "Memetic 2:" << endl;
+    file << "Oil: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionOil[i] << ", ";
+    file << endl;
+    file << "Gas: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionGas[i] << ", ";
+    file << endl;
+    file << "Time: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionTime[i] << ", ";
+    file << endl << endl;
+
+    cout << "Memetic 3:" << endl;
+    for(int i = 0; i < repetitions; i++) {
+        cout << i << endl;
+        auto start = high_resolution_clock::now();
+        field15.setSolution(400, 0.8, 0.4, 50, 100.0, 10.0, 10);
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        solutionTime[i] = double(duration.count())/1000000;
+        solutionOil[i] = field15.getOptimalOil();
+        solutionGas[i] = field15.getOptimalGas();
+    }
+    file << "Memetic 3:" << endl;
+    file << "Oil: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionOil[i] << ", ";
+    file << endl;
+    file << "Gas: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionGas[i] << ", ";
+    file << endl;
+    file << "Time: ";
+    for(int i = 0; i < repetitions; i++)
+        file << solutionTime[i] << ", ";
+    file << endl << endl;
+    file.close();
 }
