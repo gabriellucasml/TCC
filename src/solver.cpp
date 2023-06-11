@@ -79,9 +79,9 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
             }
         }
         ofstream points;
-        points.open("genetic_points.txt", fstream::in | fstream::out | fstream::trunc);
+        points.open(to_string(field->getNumWells())+"genetic_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
-            if(field->evaluations > 1000000)
+            if(field->evaluations > 100000)
                 break;
             //look for fitest
             int fitestIndex = 0;
@@ -205,7 +205,9 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
         file << "Maximum possible oil production: " << Omax <<" B/D"<< endl;
         file << "Gas input necessary: " << Gmax << " MSCF/D" << endl << endl;
         file << "Total optimal gas injection: " << totalInjection << " MSCF/D" << endl;
+        field->setOptimalGas(totalInjection);
         file << "Total optimal oil output: " << currentFitness << " B/D" << endl;
+        field->setOptimalOil(currentFitness);
         file.close();
         cout << "Done." << endl;
     }
@@ -240,8 +242,10 @@ void Solver::MultiStart(Field* field, int max_iteration, double minProdRate){
         vector<Well> candidates;
         vector<Well> lrc;
         ofstream points;
-        points.open("multi_start_points.txt", fstream::in | fstream::out | fstream::trunc);
+        points.open(to_string(field->getNumWells())+"multi_start_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int it = 0; it < max_iteration; it++){
+            if(field->evaluations > 100000)
+                break;
             //fase cosntrutiva
             //gerar lista restrita de candidatos
             vector<double> currSol(field->getNumWells(), 0);
@@ -305,7 +309,9 @@ void Solver::MultiStart(Field* field, int max_iteration, double minProdRate){
         file << "Maximum possible oil production: " << Omax <<" B/D"<< endl;
         file << "Gas input necessary: " << Gmax << " MSCF/D" << endl << endl;
         file << "Total optimal gas injection: " << currBestGas << " MSCF/D" << endl;
+        field->setOptimalGas(currBestGas);
         file << "Total optimal oil output: " << currBestOil << " B/D" << endl;
+        field->setOptimalOil(currBestOil);
         file.close();
     }
 }
@@ -344,8 +350,10 @@ void Solver::SimulatedAnnealing(Field* field, double initialTemp, double finalTe
         sol = generateRandomSolution(field);
         bestSol = sol;
         ofstream points;
-        points.open("simulated_annealing_points.txt", fstream::in | fstream::out | fstream::trunc);
+        points.open(to_string(field->getNumWells())+"simulated_annealing_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iter = 0; iter < iterations; iter++){
+            if(field->evaluations > 100000)
+                break;
             double temp = initialTemp;
             //generate neighborhood
             vector<vector<double>> neighborhood(numNeighbors);
@@ -433,8 +441,8 @@ void Solver::SimulatedAnnealing(Field* field, double initialTemp, double finalTe
         file << "Oil production without gas injection: " << noGasOilProd << endl<< endl;
 
         file << "Total optimal gas injection: " << utilizedGas << " MSCF/D" << endl;
-        file << "Total optimal oil output: " << solucaoOleo << " B/D" << endl;
         field->setOptimalGas(utilizedGas);
+        file << "Total optimal oil output: " << solucaoOleo << " B/D" << endl;
         field->setOptimalOil(solucaoOleo);
         file.close();
     }
@@ -489,8 +497,10 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
             }
         }
         ofstream points;
-        points.open("memetic1_points.txt", fstream::in | fstream::out | fstream::trunc);
+        points.open(to_string(field->getNumWells())+"memetic1_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
+            if(field->evaluations > 100000)
+                break;
             //look for fittest
             int fittestIndex = 0;
             double fittest = 0;
@@ -615,7 +625,9 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
         file << "Maximum possible oil production: " << Omax <<" B/D"<< endl;
         file << "Gas input necessary: " << Gmax << " MSCF/D" << endl << endl;
         file << "Total optimal gas injection: " << totalInjection << " MSCF/D" << endl;
+        field->setOptimalGas(totalInjection);
         file << "Total optimal oil output: " << currentFitness << " B/D" << endl;
+        field->setOptimalOil(currentFitness);
         file.close();
 
     }
@@ -684,25 +696,27 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
             candidates.clear();
         }
         ofstream points;
-        points.open("memetic2_points.txt", fstream::in | fstream::out | fstream::trunc);
+        points.open(to_string(field->getNumWells())+"memetic2_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
-            //look for fitest
-            int fitestIndex = 0;
-            double fitest = 0;
+            if(field->evaluations > 100000)
+                break;
+            //look for fittest
+            int fittestIndex = 0;
+            double fittest = 0;
             for(int i = 0; i < popSize; i++){
-                if(fitness[i]>fitest){
-                    fitestIndex = i;
-                    fitest = fitness[i];
+                if(fitness[i] > fittest){
+                    fittestIndex = i;
+                    fittest = fitness[i];
                 }
             }//O(m)
-            currentBest = population[fitestIndex];
-            currentFitness = fitness[fitestIndex];
+            currentBest = population[fittestIndex];
+            currentFitness = fitness[fittestIndex];
             //elitism
             vector<vector<double>> nextGen;
             vector<vector<double>> elite;
-            elite.push_back(population[fitestIndex]);
+            elite.push_back(population[fittestIndex]);
             for(int i = 0; i < popSize; i++){
-                if(i != fitestIndex && fitness[i]/fitness[fitestIndex]>=0.95){
+                if(i != fittestIndex && fitness[i] / fitness[fittestIndex] >= 0.95){
                     elite.push_back(population[i]);
                 }
             }
@@ -808,7 +822,9 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
         file << "Maximum possible oil production: " << Omax <<" B/D"<< endl;
         file << "Gas input necessary: " << Gmax << " MSCF/D" << endl << endl;
         file << "Total optimal gas injection: " << totalInjection << " MSCF/D" << endl;
+        field->setOptimalGas(totalInjection);
         file << "Total optimal oil output: " << currentFitness << " B/D" << endl;
+        field->setOptimalOil(currentFitness);
         file.close();
         cout << "Done." << endl;
     }
@@ -866,8 +882,10 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
             }
         }
         ofstream points;
-        points.open("memetic3_points.txt", fstream::in | fstream::out | fstream::trunc);
+        points.open(to_string(field->getNumWells())+"memetic3_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
+            if(field->evaluations > 100000)
+                break;
             //look for fitest
             int fitestIndex = 0;
             double fitest = 0;
@@ -990,7 +1008,9 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
         file << "Maximum possible oil production: " << Omax <<" B/D"<< endl;
         file << "Gas input necessary: " << Gmax << " MSCF/D" << endl << endl;
         file << "Total optimal gas injection: " << totalInjection << " MSCF/D" << endl;
+        field->setOptimalGas(totalInjection);
         file << "Total optimal oil output: " << currentFitness << " B/D" << endl;
+        field->setOptimalOil(currentFitness);
         file.close();
         cout << "Done." << endl;
     }
@@ -1062,14 +1082,6 @@ vector<double> Solver::localSearch(Field* field, const vector<double>& sol, int 
         nextNeighbor.clear();
     }
     return bestSol;
-}
-
-double Solver::sum(const std::vector<double>& vector1) {
-    double sum = 0;
-    for(auto i : vector1){
-        sum += i;
-    }
-    return sum;
 }
 
 std::vector<double> Solver::SA_LS(Field *field, vector<double> initialSol, double initialTemp, double finalTemp, int iterations, int numNeighbors) {

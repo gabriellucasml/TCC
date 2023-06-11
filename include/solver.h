@@ -19,7 +19,6 @@ public:
     /*Genetic + SA*/
     static void Memetic3(Field* field, int popSize, double crossoverRate, double mutationRate, int maxIter, double initialTemp, double finalTemp, int numNeighbors);
     static double evalSolution(Field* field, const std::vector<double>& sol);
-    static double sum(const std::vector<double>& vector1);
     static std::vector<double> localSearch(Field* field, const std::vector<double>& sol, int numNeighbors);
     static std::vector<double> generateRandomSolution(Field* field);
 private:
