@@ -111,7 +111,7 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
                 vector<double> p2 = *select_randomly(population.begin(), population.end());//random parent from general population
                 vector<double> child1(field->getNumWells()), child2(field->getNumWells());
                 double crossoverFactor = real(rng);
-                if(crossoverFactor>=crossoverRate){
+                if(crossoverFactor<=crossoverRate){
                     for(int i = 0; i < field->getNumWells(); i++){//O(n)
                         if(i < floor(field->getNumWells()*0.76)){
                             child1[i] = p1[i];
@@ -122,10 +122,10 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
                         }
                     }
                     for(int i = 0; i<field->getNumWells(); i++){//O(n)
-                        p1Fitness += field->getWells()[i].GLPC(p1[i]); field->evaluations++;
-                        p2Fitness += field->getWells()[i].GLPC(p2[i]); field->evaluations++;
-                        child1Fitness += field->getWells()[i].GLPC(child1[i]); field->evaluations++;
-                        child2Fitness += field->getWells()[i].GLPC(child2[i]); field->evaluations++;
+                        p1Fitness += (field->getWells()[i].GLPC(p1[i]) >= 0 ? field->getWells()[i].GLPC(p1[i]) : 0); field->evaluations++;
+                        p2Fitness += (field->getWells()[i].GLPC(p2[i]) >= 0 ? field->getWells()[i].GLPC(p2[i]) : 0); field->evaluations++;
+                        child1Fitness += (field->getWells()[i].GLPC(child1[i]) >= 0 ? field->getWells()[i].GLPC(child1[i]) : 0); field->evaluations++;
+                        child2Fitness += (field->getWells()[i].GLPC(child2[i]) >= 0 ? field->getWells()[i].GLPC(child2[i]) : 0); field->evaluations++;
                     }
                     double P[] = {p1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), p2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child1Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness), child2Fitness/(p1Fitness+p2Fitness+child1Fitness+child2Fitness)};
                     double accumulatedP = 0;
@@ -153,7 +153,7 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
             //mutations
             for(int i = 0; i<popSize; i++){//O(m)
                 double mutationFactor = real(rng);
-                if(mutationFactor>=mutationRate){
+                if(mutationFactor<=mutationRate){
                     int mutationIndex = allele(rng);
                     nextGen[i][mutationIndex] *= mutationValue(rng);
                 }
@@ -529,7 +529,7 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
                 vector<double> p2 = *select_randomly(population.begin(), population.end());//random parent from general population
                 vector<double> child1(field->getNumWells()), child2(field->getNumWells());
                 double crossoverFactor = real(rng);
-                if(crossoverFactor>=crossoverRate){
+                if(crossoverFactor<=crossoverRate){
                     for(int i = 0; i < field->getNumWells(); i++){//O(n)
                         if(i < floor(field->getNumWells()*0.76)){
                             child1[i] = p1[i];
@@ -571,7 +571,7 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
             //mutations
             for(int i = 0; i<popSize; i++){//O(m)
                 double mutationFactor = real(rng);
-                if(mutationFactor>=mutationRate){
+                if(mutationFactor<=mutationRate){
                     int mutationIndex = allele(rng);
                     nextGen[i][mutationIndex] += mutationValue(rng);
                 }
@@ -728,7 +728,7 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
                 vector<double> p2 = *select_randomly(population.begin(), population.end());//random parent from general population
                 vector<double> child1(field->getNumWells()), child2(field->getNumWells());
                 double crossoverFactor = real(rng);
-                if(crossoverFactor>=crossoverRate){
+                if(crossoverFactor<=crossoverRate){
                     for(int i = 0; i < field->getNumWells(); i++){//O(n)
                         if(i < floor(field->getNumWells()*0.76)){
                             child1[i] = p1[i];
@@ -770,7 +770,7 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
             //mutations
             for(int i = 0; i<popSize; i++){//O(m)
                 double mutationFactor = real(rng);
-                if(mutationFactor>=mutationRate){
+                if(mutationFactor<=mutationRate){
                     int mutationIndex = allele(rng);
                     nextGen[i][mutationIndex] *= mutationValue(rng);
                 }
@@ -914,7 +914,7 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
                 vector<double> p2 = *select_randomly(population.begin(), population.end());//random parent from general population
                 vector<double> child1(field->getNumWells()), child2(field->getNumWells());
                 double crossoverFactor = real(rng);
-                if(crossoverFactor>=crossoverRate){
+                if(crossoverFactor<=crossoverRate){
                     for(int i = 0; i < field->getNumWells(); i++){//O(n)
                         if(i < floor(field->getNumWells()*0.76)){
                             child1[i] = p1[i];
@@ -956,7 +956,7 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
             //mutations
             for(int i = 0; i<popSize; i++){//O(m)
                 double mutationFactor = real(rng);
-                if(mutationFactor>=mutationRate){
+                if(mutationFactor<=mutationRate){
                     int mutationIndex = allele(rng);
                     nextGen[i][mutationIndex] *= mutationValue(rng);
                 }
