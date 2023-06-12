@@ -81,7 +81,7 @@ void Solver::GeneticAlgorithm(Field* field, int popSize, double crossoverRate, d
         ofstream points;
         points.open(to_string(field->getNumWells())+"genetic_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
-            if(field->evaluations > 100000)
+            if(field->evaluations > 100000000)
                 break;
             //look for fitest
             int fitestIndex = 0;
@@ -244,7 +244,7 @@ void Solver::MultiStart(Field* field, int max_iteration, double minProdRate){
         ofstream points;
         points.open(to_string(field->getNumWells())+"multi_start_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int it = 0; it < max_iteration; it++){
-            if(field->evaluations > 100000)
+            if(field->evaluations > 100000000)
                 break;
             //fase cosntrutiva
             //gerar lista restrita de candidatos
@@ -352,7 +352,7 @@ void Solver::SimulatedAnnealing(Field* field, double initialTemp, double finalTe
         ofstream points;
         points.open(to_string(field->getNumWells())+"simulated_annealing_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iter = 0; iter < iterations; iter++){
-            if(field->evaluations > 100000)
+            if(field->evaluations > 100000000)
                 break;
             double temp = initialTemp;
             //generate neighborhood
@@ -499,7 +499,7 @@ void Solver::Memetic1(Field* field, int popSize, double crossoverRate, double mu
         ofstream points;
         points.open(to_string(field->getNumWells())+"memetic1_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
-            if(field->evaluations > 100000)
+            if(field->evaluations > 100000000)
                 break;
             //look for fittest
             int fittestIndex = 0;
@@ -698,7 +698,7 @@ void Solver::Memetic2(Field* field, int popSize, double crossoverRate, double mu
         ofstream points;
         points.open(to_string(field->getNumWells())+"memetic2_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
-            if(field->evaluations > 100000)
+            if(field->evaluations > 100000000)
                 break;
             //look for fittest
             int fittestIndex = 0;
@@ -884,7 +884,7 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
         ofstream points;
         points.open(to_string(field->getNumWells())+"memetic3_points.txt", fstream::in | fstream::out | fstream::trunc);
         for(int iteration = 0; iteration < maxIter; iteration++){//O(i)
-            if(field->evaluations > 100000)
+            if(field->evaluations > 100000000)
                 break;
             //look for fitest
             int fitestIndex = 0;

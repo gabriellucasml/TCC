@@ -148,7 +148,10 @@ double* Well::eliminacaoGauss(int n, double **A, double *b,double *x){
 }
 
 double Well::GLPC(double Qg){
-    return this->coefficients[0] + this->coefficients[1] * sqrt(Qg) + this->coefficients[2] * Qg;
+    if(Qg >= 0)
+        return (this->coefficients[0] + this->coefficients[1] * sqrt(Qg) + this->coefficients[2] * Qg >= 0
+            ? this->coefficients[0] + this->coefficients[1] * sqrt(Qg) + this->coefficients[2] * Qg : 0);
+    else return 0;
 }
 
 void Well::setMin(){
