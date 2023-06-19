@@ -938,16 +938,16 @@ void Solver::Memetic3(Field* field, int popSize, double crossoverRate, double mu
                         if(weightedProbability <= accumulatedP){
                             if(i==0){
                                 if(nextGen.size()+1<=popSize)
-                                    nextGen.push_back(SA_LS(field, p1, initialTemp, finalTemp, iteration, numNeighbors));
+                                    nextGen.push_back(SA_LS(field, p1, initialTemp, finalTemp, 1, numNeighbors));
                             }else if(i==1){
                                 if(nextGen.size()+1<=popSize)
-                                    nextGen.push_back(SA_LS(field, p2, initialTemp, finalTemp, iteration, numNeighbors));
+                                    nextGen.push_back(SA_LS(field, p2, initialTemp, finalTemp, 1, numNeighbors));
                             }else if(i==2){
                                 if(nextGen.size()+1<=popSize)
-                                    nextGen.push_back(SA_LS(field, child1, initialTemp, finalTemp, iteration, numNeighbors));
+                                    nextGen.push_back(SA_LS(field, child1, initialTemp, finalTemp, 1, numNeighbors));
                             }else if(i==3){
                                 if(nextGen.size()+1<=popSize)
-                                    nextGen.push_back(SA_LS(field, child2, initialTemp, finalTemp, iteration, numNeighbors));
+                                    nextGen.push_back(SA_LS(field, child2, initialTemp, finalTemp, 1, numNeighbors));
                             }
                         }
                     }
